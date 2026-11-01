@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.venvs/
+venv/
+.env
+.env.*
+!.env.example
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+dist/
+build/
+*.egg-info/
+
+# Local data
+data/*
+!data/.gitkeep
+*.sqlite
+*.db
+
+# Reference repos: read-only, never committed
+references/
+
+# OS / IDE
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

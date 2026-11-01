@@ -1,0 +1,49 @@
+{
+  "q01": {
+    "min_paragraphs": 8,
+    "max_consecutive_single_sentence": 2,
+    "max_single_sentence_ratio": 0.3
+  },
+  "q02": {
+    "min_paragraphs": 20,
+    "min_length_cv": 0.25
+  },
+  "q03": {
+    "max_emphasis_per_1000": 6.0,
+    "max_headings_per_500": 1.0
+  },
+  "q04": {
+    "max_hits_per_1000": 5.0,
+    "phrases": [
+      "总之",
+      "综上所述",
+      "值得注意的是",
+      "与此同时",
+      "毫无疑问",
+      "显而易见",
+      "换句话说",
+      "不禁",
+      "若有所思",
+      "深吸一口气",
+      "微微一笑",
+      "缓缓地",
+      "淡淡地",
+      "默默地",
+      "这一刻",
+      "那一刻",
+      "不知为何"
+    ]
+  },
+  "q05": {
+    "min_sentences": 20,
+    "common_sentence_min": 15,
+    "common_sentence_max": 35,
+    "max_common_ratio": 0.75,
+    "min_avg_length": 12
+  },
+  "q06": {
+    "n": 4,
+    "max_repeat": 3,
+    "min_chars": 400
+  }
+}
