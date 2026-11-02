@@ -141,7 +141,7 @@ Verifier 校准（2026-11-02）：旧提示（温度 0.2）在 10 章校准稿�
 | `NOVEL_LLM_API_KEY_ENV` | 存放 key 的环境变量名 |
 | `NOVEL_LLM_API_KEY` | 直接传 key（优先于 `NOVEL_LLM_API_KEY_ENV`） |
 
-本机 Claude Code 的 `ANTHROPIC_AUTH_TOKEN` 实际是 DeepSeek key，走 `https://api.deepseek.com/anthropic`。复用时配置：
+本机已有的兼容端点环境变量 `ANTHROPIC_AUTH_TOKEN` 实际是 DeepSeek key，走 `https://api.deepseek.com/anthropic`。复用时配置：
 
 ```env
 NOVEL_LLM_PROVIDER=anthropic-compatible

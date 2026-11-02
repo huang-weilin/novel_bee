@@ -48,6 +48,6 @@ if [ ! -f ".env" ]; then
 fi
 
 echo "[3/3] Starting the local web app..."
-echo "Open http://127.0.0.1:8000 and click AI Settings."
+echo "The web app will print its address below (default: http://127.0.0.1:8000)."
 echo "Press Ctrl+C in this window to stop the server."
 exec "$VENV_PY" -m novel_pipeline.server "$@"

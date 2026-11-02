@@ -6,7 +6,7 @@
 
 ## 背景
 
-开发机上的 Claude Code 配置为：
+开发机上的兼容端点配置为：
 
 ```json
 {
@@ -54,7 +54,7 @@ NOVEL_LLM_MODEL=deepseek-v4-flash
 NOVEL_LLM_API_KEY_ENV=ANTHROPIC_AUTH_TOKEN
 ```
 
-`ANTHROPIC_AUTH_TOKEN` 已由 Claude Code 注入当前环境，不需要写入 `.env`。如果换到没有该变量的机器，再在 `.env` 里设置 `NOVEL_LLM_API_KEY` 或 `NOVEL_LLM_API_KEY_ENV`。
+如果当前环境已经注入 `ANTHROPIC_AUTH_TOKEN`，不需要把它写入 `.env`。换到没有该变量的机器时，再在 `.env` 里设置 `NOVEL_LLM_API_KEY` 或 `NOVEL_LLM_API_KEY_ENV`。
 
 ## 后果
 
