@@ -89,7 +89,7 @@
 - [x] T4-6f 文档：README 改为下载者视角；新增 `docs/LOCAL.md`（启动/配置/数据/备份/升级/排错/安全边界）与 `docs/STATUS.md`（历史状态与回归记录）；更新 API/MINIPROGRAM/PLAN/TASKS
 - [x] T4-6g 测试：新增 `tests/test_settings.py`（写入/保留注释/换服务商/非法值/脱敏/403/权限）与 `tests/test_local_distribution.py`（启动脚本/`.env.example`/gitignore/包数据/JS/bash 语法）；更新服务端静态断言；全量 243 passed / 2 skipped，ruff 干净
 - [x] T4-6h 干净副本验收：无 `.venv`/`.env`/`data/novel.db` 的副本可启动、显示首次配置引导、保存配置、建作品、生成 `rules` 章节、导出、重启后数据仍在
-- [>] T4-6i 提交与发布：用户已确认提交本地 commit，MIT 许可证已加入；GitHub 远程地址待用户提供，之后才能推送、clone 复验、打 tag/Release
+- [x] T4-6i 提交与发布：MIT 许可证已加入；代码已推送到 GitHub `huang-weilin/novel_bee` 的 `master`，clone 后全量测试通过；本地 Claude 助手文件已从 Git 历史移除且未上传；tag/Release 可选，尚未创建
 
 ## Backlog（冻结，不排期）
 
@@ -139,4 +139,4 @@
 | 2026-11-02 | T4-3 | 网页 SSE 任务进度：`GET /api/jobs/{job_id}/events` 推送状态 JSON、keep-alive、终态 `event: end`；`EventSource` 失败回退轮询；小程序仍轮询；非逐 token 正文流；224 tests，ruff 干净 |
 | 2026-11-02 | M4.6 本地下载即用 | 网页 AI 设置（只写本地 `.env`、不回显 key、回环 Host 限制、连接测试、换服务商必须重填 key）；启动脚本实际检查 Python 3.11+；依赖上限与 `.gitattributes`；README 重排 + LOCAL/STATUS 文档；干净副本启动/配置/生成/导出/重启验收；243 passed / 2 skipped，ruff 干净；尚未提交/发布 |
 | 2026-11-02 | M5 冻结 | 用户要求先保证本地网页版可用、数据库全在本地、每人自购自配 AI API；公网登录/多租户/云数据库/配额/计费移入冻结 Backlog |
-| 2026-11-02 | 许可证与本地提交 | 用户选择 MIT 并授权提交本地 commit；新增 `LICENSE`，README/PLAN/TASKS 同步；GitHub 远程地址待提供，推送和 Release 未执行 |
+| 2026-11-02 | 许可证与 GitHub 发布 | 用户选择 MIT 并授权提交/推送；新增 `LICENSE`，README 加 ZIP 下载入口；本地 Claude 助手文件从 Git 历史移除并加入 `.gitignore`；推送 `master` 到 `huang-weilin/novel_bee`，clone 后 243 passed / 2 skipped；tag/Release 尚未创建 |

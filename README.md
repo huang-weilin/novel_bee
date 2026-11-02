@@ -4,6 +4,8 @@
 
 **当前状态**：本地网页版可用，支持下载后一键启动、网页内配置自己的 AI API、SQLite 本地存储和 TXT 导出；微信小程序是本地预览形态；公网多用户/云端版尚未实现。
 
+**下载**：[GitHub 仓库](https://github.com/huang-weilin/novel_bee)（[直接下载 ZIP](https://github.com/huang-weilin/novel_bee/archive/refs/heads/master.zip)）。
+
 ## 快速开始
 
 ### Windows
