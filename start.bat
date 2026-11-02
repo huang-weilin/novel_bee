@@ -2,6 +2,9 @@
 setlocal EnableExtensions
 cd /d "%~dp0"
 
+echo Before first use: install Python 3.11+ and prepare your own AI API key.
+echo The first run needs internet to install dependencies.
+
 set "VENV_PY=.venv\Scripts\python.exe"
 set "PYTHON_CMD="
 

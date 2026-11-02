@@ -2,14 +2,14 @@
 
 这是给“下载到自己电脑上用”的版本。代码、数据库、配置和 AI Key 都在你自己的电脑上；工具本身不提供云端账号，也不替你付费。你需要自己购买或申请一个 AI 接口，把 Key 填进本机。
 
-## 1. 运行要求
+## 1. 开始前必须准备
 
-- Windows 10/11，或 macOS / Linux。
-- Python 3.11 或更新版本（启动脚本会检查）。
-- 第一次安装依赖需要联网；之后启动不一定需要联网。
-- 生成章节时需要能访问你选择的 AI 服务商。
+- **Python 3.11 或更新版本**：工具不会自动安装 Python。Windows 安装时勾选 **Add python.exe to PATH**；macOS/Linux 可用 `python3 --version` 检查。
+- **自己的 AI API Key**：到 DeepSeek / OpenAI / Anthropic / 兼容服务商申请，或使用不需要 Key 的本地 Ollama。工具不提供 Key，也不代付费用。
+- **第一次启动联网**：用于下载 Python 依赖；生成章节时还需要访问所选 AI 服务商。
+- **默认端口 8000 空闲**：被占用时加 `--port 8123`，或设置 `NOVEL_SERVER_PORT`。
 
-不需要 Node.js、Docker、PostgreSQL、Redis，也不需要安装数据库。数据存在一个 SQLite 文件里。
+支持 Windows 10/11、macOS、Linux。不需要 Node.js、Docker、PostgreSQL、Redis，也不需要安装数据库；数据存在一个 SQLite 文件里。
 
 ## 2. 下载与启动
 

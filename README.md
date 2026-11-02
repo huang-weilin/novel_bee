@@ -6,6 +6,15 @@
 
 **下载**：[GitHub 仓库](https://github.com/huang-weilin/novel_bee)（[直接下载 ZIP](https://github.com/huang-weilin/novel_bee/archive/refs/heads/master.zip)）。
 
+## 开始前必须准备
+
+- **Python 3.11 或更新版本**：工具不会自动安装 Python；Windows 安装时请勾选 **Add python.exe to PATH**。
+- **你自己的 AI API Key**：需要自己到 DeepSeek / OpenAI / Anthropic / 兼容服务商申请；工具不提供 Key，也不代付费用。Ollama 本地模型不需要外部 Key。
+- **第一次启动需要联网**：用于下载 Python 依赖；生成章节时还需要能访问你选择的 AI 服务商。
+- **默认端口 8000 空闲**：被占用时用 `start.bat --port 8123` 或 `./start.sh --port 8123`。
+
+不需要 Node.js、Docker、PostgreSQL、Redis，也不需要手动建数据库。
+
 ## 快速开始
 
 ### Windows

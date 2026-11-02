@@ -2,6 +2,9 @@
 set -euo pipefail
 cd "$(dirname "$0")"
 
+echo "Before first use: install Python 3.11+ and prepare your own AI API key."
+echo "The first run needs internet to install dependencies."
+
 VENV_PY=".venv/bin/python"
 PYTHON_CHECK='import sys; raise SystemExit(0 if sys.version_info >= (3, 11) else 1)'
 
