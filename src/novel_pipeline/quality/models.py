@@ -30,6 +30,7 @@ class ChapterInput:
     outline: str = ""
     character_brief: str = ""
     style_constraints: str = ""
+    target_words: int = 0
 
     @classmethod
     def from_mapping(cls, data: Mapping[str, Any]) -> ChapterInput:
@@ -49,6 +50,7 @@ class ChapterInput:
             outline=str(data.get("outline", "")),
             character_brief=str(data.get("character_brief", "")),
             style_constraints=str(data.get("style_constraints", "")),
+            target_words=int(data.get("target_words", 0) or 0),
         )
 
 

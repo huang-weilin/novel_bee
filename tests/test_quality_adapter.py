@@ -16,7 +16,13 @@ class FakeEngine:
     def __init__(self, findings):
         self.findings = findings
 
-    def check(self, text: str, *, genre: str = ""):
+    def check(
+        self,
+        text: str,
+        *,
+        genre: str = "",
+        target_words: int | None = None,
+    ):
         return list(self.findings)
 
 
@@ -251,7 +257,12 @@ def test_full_requires_scorer() -> None:
 def test_mapping_input_and_serialization() -> None:
     adapter, _ = make_adapter([])
     report = adapter.review(
-        {"content": "正文", "project_id": "p1", "chapter_seq": 2},
+        {
+            "content": "正文",
+            "project_id": "p1",
+            "chapter_seq": 2,
+            "target_words": 1800,
+        },
         mode="rules",
     )
     payload = report.to_dict()

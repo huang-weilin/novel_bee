@@ -6,7 +6,11 @@ from unittest.mock import patch
 import pytest
 
 from novel_pipeline.config import LLMConfig
-from novel_pipeline.llm import LLMClient, LLMError
+from novel_pipeline.llm import (
+    DEFAULT_LLM_MAX_TOKENS,
+    LLMClient,
+    LLMError,
+)
 
 
 class FakeResponse:
@@ -43,6 +47,12 @@ def openai_config() -> LLMConfig:
         api_key="secret-key",
         timeout_seconds=5,
     )
+
+
+def test_default_generation_budget_leaves_room_for_thinking() -> None:
+    # A thinking model can spend a small cap entirely on reasoning blocks and
+    # return no text; the structured/revision calls share this default.
+    assert DEFAULT_LLM_MAX_TOKENS >= 16_384
 
 
 def test_anthropic_request_shape() -> None:
@@ -105,6 +115,16 @@ def test_http_error_is_wrapped() -> None:
     with patch(
         "novel_pipeline.llm.urllib.request.urlopen", fake_urlopen
     ), pytest.raises(LLMError, match="401"):
+        LLMClient(anthropic_config()).complete("hello")
+
+
+def test_read_timeout_is_wrapped() -> None:
+    def fake_urlopen(request, timeout):
+        raise TimeoutError("read timed out")
+
+    with patch(
+        "novel_pipeline.llm.urllib.request.urlopen", fake_urlopen
+    ), pytest.raises(LLMError, match="timed out"):
         LLMClient(anthropic_config()).complete("hello")
 
 

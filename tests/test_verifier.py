@@ -17,14 +17,18 @@ def test_parse_valid_output() -> None:
             "findings": [
                 {"rule_id": "Q07", "hit": True, "evidence": "甲", "suggestion": "乙"},
                 {"rule_id": "Q08", "hit": True, "evidence": "丙", "suggestion": "丁"},
+                {"rule_id": "Q09", "hit": True, "evidence": "戊", "suggestion": "己"},
+                {"rule_id": "Q10", "hit": True, "evidence": "庚", "suggestion": "辛"},
             ]
         },
         ensure_ascii=False,
     )
     findings = parse_output(raw)
-    assert [finding.rule_id for finding in findings] == ["Q07", "Q08"]
+    assert [finding.rule_id for finding in findings] == ["Q07", "Q08", "Q09", "Q10"]
     assert findings[0].severity is Severity.BLOCKER
     assert findings[1].severity is Severity.MAJOR
+    assert findings[2].severity is Severity.MAJOR
+    assert findings[3].severity is Severity.MAJOR
 
 
 def test_parse_code_fence_and_empty_findings() -> None:
@@ -36,7 +40,7 @@ def test_parse_skips_hit_false_and_unknown_rule() -> None:
         {
             "findings": [
                 {"rule_id": "Q07", "hit": False, "evidence": "甲"},
-                {"rule_id": "Q09", "hit": True, "evidence": "乙"},
+                {"rule_id": "Q99", "hit": True, "evidence": "乙"},
             ]
         },
         ensure_ascii=False,

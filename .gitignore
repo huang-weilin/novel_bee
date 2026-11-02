@@ -20,8 +20,9 @@ data/*
 *.sqlite
 *.db
 
-# Reference repos: read-only, never committed
+# Reference repos/texts: read-only, never committed
 references/
+/黎小鸭.txt
 
 # OS / IDE
 .DS_Store

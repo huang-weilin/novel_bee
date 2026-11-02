@@ -104,6 +104,7 @@ def load_cases(directory: str | Path) -> list[CalibrationCase]:
                     outline=str(meta.get("outline", "")),
                     character_brief=str(meta.get("character_brief", "")),
                     style_constraints=str(meta.get("style_constraints", "")),
+                    target_words=int(meta.get("target_words", 0) or 0),
                 ),
             )
         )

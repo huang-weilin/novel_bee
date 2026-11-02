@@ -8,7 +8,7 @@ from collections.abc import Callable
 from dataclasses import dataclass, field
 
 from ..config import LLMConfig
-from ..llm import LLMClient, LLMError
+from ..llm import DEFAULT_LLM_MAX_TOKENS, LLMClient, LLMError
 from .models import ChapterInput
 from .verifier import MAX_CONTENT_CHARS, VerifierError
 
@@ -154,7 +154,7 @@ class LLMScorer:
             prompt,
             system=SCORER_SYSTEM,
             temperature=0.2,
-            max_tokens=4096,
+            max_tokens=DEFAULT_LLM_MAX_TOKENS,
         )
 
     def score(self, chapter: ChapterInput) -> ScoreResult:

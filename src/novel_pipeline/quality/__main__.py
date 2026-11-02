@@ -29,6 +29,12 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--genre", default="")
     parser.add_argument("--project-id", default="")
     parser.add_argument("--chapter-seq", type=int, default=0)
+    parser.add_argument(
+        "--target-words",
+        type=int,
+        default=0,
+        help="chapter target length; 0 disables the length warning",
+    )
     parser.add_argument("--log-file", type=Path, default=None)
     return parser
 
@@ -59,6 +65,7 @@ def main(argv: list[str] | None = None) -> int:
             project_id=args.project_id,
             chapter_seq=args.chapter_seq,
             genre=args.genre,
+            target_words=args.target_words,
         ),
         mode=args.mode,
     )

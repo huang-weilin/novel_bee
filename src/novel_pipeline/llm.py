@@ -17,6 +17,10 @@ import urllib.request
 
 from .config import LLMConfig
 
+# Structured and revision calls run on thinking models. A small cap can be
+# consumed entirely by reasoning blocks, leaving no text/JSON output.
+DEFAULT_LLM_MAX_TOKENS = 16_384
+
 
 class LLMError(RuntimeError):
     """Raised when the LLM endpoint fails or returns an unusable response."""
@@ -69,6 +73,8 @@ class LLMClient:
             raise LLMError(f"LLM HTTP {exc.code}: {detail}") from exc
         except urllib.error.URLError as exc:
             raise LLMError(f"LLM connection failed: {exc.reason}") from exc
+        except OSError as exc:
+            raise LLMError(f"LLM connection failed: {exc}") from exc
         return self._parse_response(raw)
 
     def _build_request(

@@ -43,7 +43,7 @@ class QualityAdapter:
         """Review one chapter.
 
         ``mode='log_only'`` implements the T2-1 shell: record and pass through.
-        ``mode='rules'`` runs Q01-Q06; ``mode='rules+llm'`` also runs Q07-Q08;
+        ``mode='rules'`` runs Q01-Q06 plus Q11/Q12; ``mode='rules+llm'`` also runs Q07-Q10;
         ``mode='full'`` adds the four-dimension scorer. A verifier/scorer
         failure goes to human_review. Full mode applies the SPEC decision
         thresholds; rule-only modes keep an interim mapping.
@@ -58,7 +58,11 @@ class QualityAdapter:
                 notes=["log_only"],
             )
         elif mode in ("rules", "rules+llm", "rules+score", "full"):
-            findings = self.engine.check(chapter.content, genre=chapter.genre)
+            findings = self.engine.check(
+                chapter.content,
+                genre=chapter.genre,
+                target_words=chapter.target_words,
+            )
             notes = (
                 ["rules_only_no_scoring"]
                 if mode in ("rules", "rules+llm")

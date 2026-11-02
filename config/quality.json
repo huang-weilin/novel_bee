@@ -45,5 +45,10 @@
     "n": 4,
     "max_repeat": 3,
     "min_chars": 400
+  },
+  "q11": {},
+  "q12": {
+    "min_ratio": 0.7,
+    "max_ratio": 1.3
   }
 }

@@ -1,4 +1,4 @@
-from novel_pipeline.quality.models import Severity
+from novel_pipeline.quality.models import ChapterInput, Severity
 from novel_pipeline.quality.rules import RuleEngine
 
 CLEAN_SAMPLE = """夜色从屋檐上落下来，街面上的水光一层层铺开。老周把最后一箱书搬进店里，肩膀被纸箱勒出一道红印。
@@ -32,7 +32,7 @@ def test_clean_sample_has_no_findings() -> None:
     assert RuleEngine().check(CLEAN_SAMPLE) == []
 
 
-def test_q01_flags_consecutive_single_sentence_paragraphs() -> None:
+def test_q01_flags_consecutive_single_sentence_paragraphs_as_minor() -> None:
     text = """他停下。
 
 他回头。
@@ -49,7 +49,7 @@ def test_q01_flags_consecutive_single_sentence_paragraphs() -> None:
 
 他回到柜台，把台灯调暗了一些。"""
     finding = findings_by_id(text)["Q01"]
-    assert finding.severity is Severity.MAJOR
+    assert finding.severity is Severity.MINOR
     assert "连续单句段" in finding.evidence
 
 
@@ -88,3 +88,52 @@ def test_q06_flags_repeated_four_gram() -> None:
     finding = findings_by_id(text)["Q06"]
     assert finding.severity is Severity.MINOR
     assert "重复" in finding.evidence
+
+
+def test_q11_flags_halfwidth_punctuation_between_cjk() -> None:
+    finding = findings_by_id("他停下,回头。然后说:走吧。")["Q11"]
+    assert finding.severity is Severity.MAJOR
+    assert "半角标点" in finding.evidence
+    assert finding.metrics["halfwidth"] == 2
+
+
+def test_q11_flags_straight_quotes_around_chinese() -> None:
+    double = findings_by_id('他说"走吧"，然后转身。')["Q11"]
+    single = findings_by_id("他说'走吧'，然后转身。")["Q11"]
+    assert double.metrics["straight_double"] == 2
+    assert single.metrics["straight_single"] == 2
+    assert "直双引号" in double.evidence
+
+
+def test_q11_ignores_halfwidth_punctuation_in_english_context() -> None:
+    assert "Q11" not in findings_by_id(
+        "他打开 API, 然后调用 foo(bar) 函数，参数是 a.b。"
+    )
+
+
+def test_q12_warns_when_chapter_is_outside_length_tolerance() -> None:
+    text = "他走进雨里，没有回头。" * 8
+    findings = {
+        finding.rule_id: finding
+        for finding in RuleEngine().check(text, target_words=2000)
+    }
+    finding = findings["Q12"]
+    assert finding.severity is Severity.MINOR
+    assert "低于容差区间" in finding.evidence
+    assert finding.metrics["ratio"] < 0.7
+
+
+def test_q12_is_quiet_within_tolerance_and_without_target() -> None:
+    text = "他走进雨里，没有回头。" * 8
+    engine = RuleEngine()
+    within = {finding.rule_id for finding in engine.check(text, target_words=80)}
+    assert "Q12" not in within
+    no_target = {finding.rule_id for finding in engine.check(text)}
+    assert "Q12" not in no_target
+
+
+def test_chapter_input_mapping_reads_target_words() -> None:
+    chapter = ChapterInput.from_mapping(
+        {"content": "正文", "target_words": "1800"}
+    )
+    assert chapter.target_words == 1800

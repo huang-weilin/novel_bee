@@ -1,4 +1,4 @@
-"""Programmatic quality rules Q01-Q06.
+"""Programmatic quality rules Q01-Q06, Q11, and Q12.
 
 Thresholds live in ``config/quality.json``. Rule IDs and wording are this
 project's own; they are not copied from any reference repository.
@@ -57,6 +57,8 @@ DEFAULT_CONFIG: dict[str, Any] = {
         "min_avg_length": 12,
     },
     "q06": {"n": 4, "max_repeat": 3, "min_chars": 400},
+    "q11": {},
+    "q12": {"min_ratio": 0.7, "max_ratio": 1.3},
 }
 
 
@@ -96,7 +98,9 @@ def _max_single_sentence_run(flags: list[bool]) -> tuple[int, int, int]:
 
 class Q01:
     rule_id = "Q01"
-    severity = Severity.MAJOR
+    # 单句段本身不是缺陷：真实网文常用短段推进对话和动作节拍。
+    # 降为提示级，避免把“有意的节奏”误判成“碎片化”并强制改写。
+    severity = Severity.MINOR
 
     def __init__(self, config: dict[str, Any]):
         self.config = config
@@ -119,7 +123,10 @@ class Q01:
                 f"连续单句段 {max_run} 段（第 {start + 1}-{end + 1} 段），"
                 f"单句段占比 {ratio:.0%}"
             ),
-            suggestion="合并相邻单句段，补充动作、场景或对话，避免排版碎片化。",
+            suggestion=(
+                "单句段较多。若这些短段是连续的对话或动作节拍，可以保留；"
+                "只有读起来像提纲、段与段之间没有推进时，才合并并补充场景。"
+            ),
             metrics={"max_run": max_run, "ratio": round(ratio, 4)},
         )
 
@@ -296,7 +303,139 @@ class Q06:
         )
 
 
-_RULE_CLASSES = (Q01, Q02, Q03, Q04, Q05, Q06)
+_CJK_RANGE = "㐀-䶿一-鿿豈-﫿"
+_CJK = f"[{_CJK_RANGE}]"
+
+
+def _snippet(raw: str, start: int, end: int, *, radius: int = 8) -> str:
+    left = max(0, start - radius)
+    right = min(len(raw), end + radius)
+    return re.sub(r"\s+", " ", raw[left:right]).strip()
+
+
+class Q11:
+    rule_id = "Q11"
+    severity = Severity.MAJOR
+
+    # 中文语境内使用半角标点，或把中文对话包在直引号里。只查紧邻汉字的
+    # 情况，避免把英文术语、数字和代码里的半角符号误判为中文排版问题。
+    _HALF_BETWEEN = re.compile(
+        rf"(?<={_CJK})[,\.!?;:](?={_CJK}|[\s”’」』）\]】》〉\"']|$)"
+    )
+    _ELLIPSIS = re.compile(rf"(?<={_CJK})\.{{3,}}(?={_CJK})")
+    _DASH = re.compile(rf"(?<={_CJK})--+(?={_CJK})")
+    _DOUBLE_PAIR = re.compile(rf'"[^"\n]*{_CJK}[^"\n]*"')
+    _DOUBLE_ADJ = re.compile(rf'(?<={_CJK})"|"(?={_CJK})')
+    _SINGLE_PAIR = re.compile(rf"'[^'\n]*{_CJK}[^'\n]*'")
+    _SINGLE_ADJ = re.compile(rf"(?<={_CJK})'|'(?={_CJK})")
+
+    def __init__(self, config: dict[str, Any]):
+        self.config = config
+
+    def check(self, stats: TextStats) -> RuleFinding | None:
+        raw = stats.raw
+        half = list(self._HALF_BETWEEN.finditer(raw))
+        ellipsis = list(self._ELLIPSIS.finditer(raw))
+        dash = list(self._DASH.finditer(raw))
+        double_pair = list(self._DOUBLE_PAIR.finditer(raw))
+        double_adj = list(self._DOUBLE_ADJ.finditer(raw))
+        single_pair = list(self._SINGLE_PAIR.finditer(raw))
+        single_adj = list(self._SINGLE_ADJ.finditer(raw))
+
+        half_count = len(half) + len(ellipsis) + len(dash)
+        double_count = 0
+        if double_pair or double_adj:
+            double_count = max(
+                len(double_pair) * 2, len(double_adj), raw.count('"')
+            )
+        single_count = max(len(single_pair) * 2, len(single_adj))
+        if not (half_count or double_count or single_count):
+            return None
+
+        samples: list[str] = []
+        for match in (half + ellipsis + dash)[:3]:
+            samples.append(_snippet(raw, match.start(), match.end()))
+        if double_pair:
+            match = double_pair[0]
+            samples.append(_snippet(raw, match.start(), match.end(), radius=0)[:40])
+        elif double_adj:
+            match = double_adj[0]
+            samples.append(_snippet(raw, match.start(), match.end()))
+        if single_pair:
+            match = single_pair[0]
+            samples.append(_snippet(raw, match.start(), match.end(), radius=0)[:40])
+
+        parts: list[str] = []
+        if half_count:
+            parts.append(f"半角标点 {half_count} 处")
+        if double_count:
+            parts.append(f"直双引号 {double_count} 个")
+        if single_count:
+            parts.append(f"直单引号 {single_count} 个")
+        detail = "；".join(f"“{sample}”" for sample in dict.fromkeys(samples))
+        evidence = "，".join(parts)
+        if detail:
+            evidence += f"：{detail}"
+
+        return RuleFinding(
+            rule_id=self.rule_id,
+            severity=self.severity,
+            evidence=evidence,
+            suggestion=(
+                "中文语境改用全角标点（，。！？；：），省略号用“……”，"
+                "破折号用“——”，直引号换成“”；只改标点，不改句子。"
+            ),
+            metrics={
+                "halfwidth": half_count,
+                "straight_double": double_count,
+                "straight_single": single_count,
+            },
+        )
+
+
+class Q12:
+    rule_id = "Q12"
+    severity = Severity.MINOR
+
+    def __init__(self, config: dict[str, Any]):
+        self.config = config
+
+    def check(self, stats: TextStats, *, target_words: int) -> RuleFinding | None:
+        cfg = self.config
+        if target_words <= 0:
+            return None
+        low_ratio = float(cfg.get("min_ratio", 0.7))
+        high_ratio = float(cfg.get("max_ratio", 1.3))
+        low = round(target_words * low_ratio)
+        high = round(target_words * high_ratio)
+        count = stats.char_count
+        if low <= count <= high:
+            return None
+        direction = "低于" if count < low else "高于"
+        suggestion = (
+            "篇幅偏低：补一段有目标的场景（冲突、代价或钩子），不要用解释和形容词凑字数。"
+            if count < low
+            else "篇幅偏高：先删重复解释和可推断的细节；若情节确实需要，考虑拆成两章，不要硬压。"
+        )
+        return RuleFinding(
+            rule_id=self.rule_id,
+            severity=self.severity,
+            evidence=(
+                f"本章 {count} 字，目标 {target_words} 字，{direction}容差区间 "
+                f"{low}-{high} 字"
+            ),
+            suggestion=suggestion,
+            metrics={
+                "chars": count,
+                "target_words": target_words,
+                "ratio": round(count / target_words, 3),
+                "min_ratio": low_ratio,
+                "max_ratio": high_ratio,
+            },
+        )
+
+
+_RULE_CLASSES = (Q01, Q02, Q03, Q04, Q05, Q06, Q11)
 _SEVERITY_ORDER = {Severity.BLOCKER: 0, Severity.MAJOR: 1, Severity.MINOR: 2}
 
 
@@ -305,17 +444,31 @@ class RuleEngine:
 
     def __init__(self, config: dict[str, Any] | None = None):
         self.config = config or load_config()
-        self.rules = [rule_class(self.config[rule_class.rule_id.lower()]) for rule_class in _RULE_CLASSES]
+        self.rules = [
+            rule_class(self.config[rule_class.rule_id.lower()])
+            for rule_class in _RULE_CLASSES
+        ]
+        self.length_rule = Q12(self.config["q12"])
 
     @classmethod
     def from_config_file(cls, path: str | Path) -> RuleEngine:
         return cls(load_config(path))
 
-    def check(self, text: str, *, genre: str = "") -> list[RuleFinding]:
+    def check(
+        self,
+        text: str,
+        *,
+        genre: str = "",
+        target_words: int | None = None,
+    ) -> list[RuleFinding]:
         stats = analyze_text(text)
         findings = [
             finding
             for rule in self.rules
             if (finding := rule.check(stats)) is not None
         ]
+        if target_words and target_words > 0:
+            finding = self.length_rule.check(stats, target_words=target_words)
+            if finding is not None:
+                findings.append(finding)
         return sorted(findings, key=lambda item: _SEVERITY_ORDER[item.severity])

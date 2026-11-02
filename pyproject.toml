@@ -7,7 +7,9 @@ name = "novel-pipeline"
 version = "0.1.0"
 description = "Long-form AI novel generation pipeline with quality gates and structured memory"
 requires-python = ">=3.11"
-dependencies = []
+dependencies = [
+    "pydantic>=2.6",
+]
 
 [project.optional-dependencies]
 dev = [

@@ -12,7 +12,7 @@ from collections.abc import Callable
 from dataclasses import replace
 
 from ..config import LLMConfig
-from ..llm import LLMClient, LLMError
+from ..llm import DEFAULT_LLM_MAX_TOKENS, LLMClient, LLMError
 from .loop import RevisionRequest
 from .models import ChapterInput, Decision
 
@@ -20,11 +20,16 @@ MAX_CONTENT_CHARS = 20_000
 
 REVISER_SYSTEM = """你是网络小说的修订员。根据质量门给出的失败项修订正文。
 
+修订顺序：先补承接（场景脊柱、因果桥、人物声口、关键物件回指），再删装饰。不要把“把所有句子改短”当成解决冗余的办法。
+
 要求：
 1. 只修改失败项涉及的问题，保留原有情节、人物、场景和大致篇幅。
 2. 不添加解释、标题、批注或 Markdown 代码块，直接输出修订后的正文。
 3. rewrite 允许调整段落结构；polish 只做局部修改。
-4. 修订后的正文必须仍是完整的一章，不要续写下一章。"""
+4. 不要把叙述段落切成动作提示；不要把每句对话都拆成单独一段；保留必要的复合句、过渡句和人物内心判断。
+5. 如果原文信息不足，先补一句动作、心理或环境承接，再删冗余；不要让读者靠猜来补时间、地点、因果。
+6. 不同人物要有不同的句长、词汇、称呼和直接程度；不要把所有人物改成同一种短促语气。
+7. 修订后的正文必须仍是完整的一章，不要续写下一章。"""
 
 
 class RevisionError(RuntimeError):
@@ -80,7 +85,7 @@ class LLMReviser:
             prompt,
             system=REVISER_SYSTEM,
             temperature=0.4,
-            max_tokens=4096,
+            max_tokens=DEFAULT_LLM_MAX_TOKENS,
         )
 
     def revise(
