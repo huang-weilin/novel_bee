@@ -146,5 +146,25 @@ def test_thinking_only_response_is_rejected() -> None:
         LLMClient(anthropic_config()).complete("hello")
 
 
+def test_thinking_only_response_retries_with_larger_budget() -> None:
+    bodies = []
+    responses = [
+        {"content": [{"type": "thinking", "thinking": "reasoning"}]},
+        {"content": [{"type": "text", "text": "ok"}]},
+    ]
+
+    def fake_urlopen(request, timeout):
+        bodies.append(json.loads(request.data))
+        return FakeResponse(responses.pop(0))
+
+    with patch("novel_pipeline.llm.urllib.request.urlopen", fake_urlopen):
+        text = LLMClient(anthropic_config()).complete(
+            "hello", max_tokens=16_384
+        )
+
+    assert text == "ok"
+    assert [body["max_tokens"] for body in bodies] == [16_384, 32_768]
+
+
 def test_config_repr_hides_key() -> None:
     assert "secret-key" not in repr(anthropic_config())

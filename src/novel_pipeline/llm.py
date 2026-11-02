@@ -20,10 +20,15 @@ from .config import LLMConfig
 # Structured and revision calls run on thinking models. A small cap can be
 # consumed entirely by reasoning blocks, leaving no text/JSON output.
 DEFAULT_LLM_MAX_TOKENS = 16_384
+MAX_RETRY_MAX_TOKENS = 65_536
 
 
 class LLMError(RuntimeError):
     """Raised when the LLM endpoint fails or returns an unusable response."""
+
+
+class LLMThinkingOnlyError(LLMError):
+    """The response spent its whole output budget on thinking blocks."""
 
 
 class LLMClient:
@@ -50,12 +55,49 @@ class LLMClient:
         temperature: float | None = None,
         max_tokens: int | None = None,
     ) -> str:
+        limit = self.config.max_tokens if max_tokens is None else max_tokens
         payload, headers = self._build_request(
             prompt,
             system=system,
             temperature=temperature,
-            max_tokens=max_tokens,
+            max_tokens=limit,
         )
+        try:
+            return self._parse_response(self._post(payload, headers))
+        except LLMThinkingOnlyError:
+            # Thinking-only output usually means the reasoning blocks ate the
+            # output budget. Retry once with a larger cap before failing the
+            # chapter and sending it to human review.
+            retry_limit = min(
+                max(limit * 2, DEFAULT_LLM_MAX_TOKENS), MAX_RETRY_MAX_TOKENS
+            )
+            if retry_limit <= limit:
+                raise
+            payload, headers = self._build_request(
+                prompt,
+                system=system,
+                temperature=temperature,
+                max_tokens=retry_limit,
+            )
+            return self._parse_response(self._post(payload, headers))
+
+    def ping(self) -> None:
+        """Check credentials with one tiny request.
+
+        Any HTTP 2xx is treated as success. The body is deliberately not
+        parsed: a thinking model may return only reasoning blocks even for a
+        two-token prompt, and the settings dialog still wants to know that the
+        endpoint accepted the key.
+        """
+        payload, headers = self._build_request(
+            "Hi",
+            system="",
+            temperature=0.0,
+            max_tokens=16,
+        )
+        self._post(payload, headers)
+
+    def _post(self, payload: dict, headers: dict[str, str]) -> str:
         body = json.dumps(payload, ensure_ascii=False).encode("utf-8")
         request = urllib.request.Request(
             self.endpoint,
@@ -67,7 +109,7 @@ class LLMClient:
             with urllib.request.urlopen(
                 request, timeout=self.config.timeout_seconds
             ) as response:
-                raw = response.read().decode("utf-8", "replace")
+                return response.read().decode("utf-8", "replace")
         except urllib.error.HTTPError as exc:
             detail = exc.read().decode("utf-8", "replace")[:500]
             raise LLMError(f"LLM HTTP {exc.code}: {detail}") from exc
@@ -75,7 +117,6 @@ class LLMClient:
             raise LLMError(f"LLM connection failed: {exc.reason}") from exc
         except OSError as exc:
             raise LLMError(f"LLM connection failed: {exc}") from exc
-        return self._parse_response(raw)
 
     def _build_request(
         self,
@@ -151,7 +192,7 @@ class LLMClient:
                 )
             )
             if has_thinking:
-                raise LLMError(
+                raise LLMThinkingOnlyError(
                     "LLM returned only thinking blocks; increase max_tokens "
                     "or disable thinking"
                 )

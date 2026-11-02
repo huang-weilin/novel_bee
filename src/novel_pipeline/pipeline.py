@@ -73,6 +73,7 @@ class GenerationRequest:
     pov: str = "第三人称"
     title: str | None = None
     character_brief: str = ""
+    trial_text: str = ""
 
     def __post_init__(self) -> None:
         if self.chapter_seq < 1:
@@ -262,6 +263,7 @@ class ChapterPipeline:
             scene_plan=request.scene_plan,
             target_words=request.target_words,
             pov=request.pov,
+            trial_text=request.trial_text,
         )
         result = PipelineResult(
             request=request,
@@ -387,6 +389,11 @@ class ChapterPipeline:
         if preview.needs_review:
             # Do not write half a payload when any entry needs a human. The
             # pending chapter keeps the prose for review; memory stays clean.
+            self.store.set_chapter_review(
+                request.project_id,
+                request.chapter_seq,
+                [item.to_dict() for item in preview.needs_review],
+            )
             result.applied = ApplyResult(
                 skipped=list(preview.skipped),
                 needs_review=list(preview.needs_review),
@@ -411,6 +418,11 @@ class ChapterPipeline:
             result.error = applied.error
             return result
         if applied.needs_review:  # pragma: no cover - dry_run mirrors apply
+            self.store.set_chapter_review(
+                request.project_id,
+                request.chapter_seq,
+                [item.to_dict() for item in applied.needs_review],
+            )
             result.status = "pending"
             result.notes.append(
                 "extraction produced needs_review items after dry-run; "

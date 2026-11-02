@@ -1,0 +1,127 @@
+<view class="page">
+  <view class="hero">
+    <view class="hero-title">第 {{seq}} 章</view>
+    <view class="hero-sub">{{chapter && chapter.title ? chapter.title : '正在生成…'}}</view>
+  </view>
+
+  <view wx:if="{{loading}}" class="card">
+    <view class="score-row">
+      <view class="section-title">{{message}}</view>
+      <view class="pill pill-muted">{{progress}}%</view>
+    </view>
+    <view class="progress-track">
+      <view class="progress-bar" style="width: {{progress}}%;"></view>
+    </view>
+    <view class="hint">写一章通常需要一到几分钟，可以留在这个页面等。</view>
+  </view>
+
+  <view wx:if="{{error}}" class="card">
+    <view class="error-text">{{error}}</view>
+    <button class="btn btn-ghost btn-block" bindtap="backProject">返回作品</button>
+  </view>
+
+  <view wx:if="{{chapter}}" class="card">
+    <view class="score-row">
+      <view class="section-title">{{chapter.title || '未命名章节'}}</view>
+      <view class="pill {{statusClass}}">{{statusLabel}}</view>
+    </view>
+    <view class="stats">
+      <view class="stat">{{chapter.chars}} 字</view>
+      <view class="stat stat-strong">{{scoreText}}</view>
+      <view wx:if="{{chapter.rewrite_count}}" class="stat">重写 {{chapter.rewrite_count}} 次</view>
+    </view>
+    <view wx:if="{{statusLabel === '待确认'}}" class="hint">本章正文已保存，但记忆还没有写入。处理完下面的待确认事项后重写，通过检查才会转成定稿。</view>
+  </view>
+
+  <view wx:if="{{failures.length}}" class="card">
+    <view class="section-title">质量门提示</view>
+    <view class="hint">这些是自动检查发现的问题，可以按建议重写，也可以直接继续下一章。</view>
+    <view class="failure-list">
+      <view wx:for="{{failures}}" wx:key="key" class="failure-item">
+        <view>{{item.text}}</view>
+        <view wx:if="{{item.suggestion}}" class="hint">建议：{{item.suggestion}}</view>
+      </view>
+    </view>
+  </view>
+
+  <view wx:if="{{reviewItems.length}}" class="card">
+    <view class="section-title">待确认事项</view>
+    <view class="hint">先补登记缺失的人物或物品，再重写本章。不登记就重写，多半还会停在这里。</view>
+    <view class="review-box">
+      <view wx:for="{{reviewItems}}" wx:key="key" class="review-item">
+        <view class="review-name">{{item.kindLabel}}「{{item.name}}」</view>
+        <view class="review-reason">{{item.reasonLabel}}</view>
+        <view wx:if="{{item.canCharacter}}" class="review-form">
+          <input
+            class="mini-input flex"
+            placeholder="当前状态，如：受伤、在场"
+            value="{{item.form.status}}"
+            data-index="{{index}}"
+            data-field="status"
+            bindinput="onReviewInput"
+          />
+          <button
+            class="btn btn-primary btn-small"
+            data-index="{{index}}"
+            bindtap="registerCharacter"
+            disabled="{{item.registering}}"
+          >{{item.registering ? '登记中…' : '登记人物'}}</button>
+        </view>
+        <view wx:elif="{{item.canItem}}" class="review-form">
+          <input
+            class="mini-input"
+            style="width: 160rpx;"
+            type="digit"
+            placeholder="数量"
+            value="{{item.form.quantity}}"
+            data-index="{{index}}"
+            data-field="quantity"
+            bindinput="onReviewInput"
+          />
+          <input
+            class="mini-input"
+            style="width: 130rpx;"
+            placeholder="单位"
+            value="{{item.form.unit}}"
+            data-index="{{index}}"
+            data-field="unit"
+            bindinput="onReviewInput"
+          />
+          <button
+            class="btn btn-primary btn-small"
+            data-index="{{index}}"
+            bindtap="registerItem"
+            disabled="{{item.registering}}"
+          >{{item.registering ? '登记中…' : '登记物品'}}</button>
+        </view>
+        <view wx:else class="hint">这类事项暂不支持在小程序里补登记，请到电脑网页版处理。</view>
+      </view>
+    </view>
+  </view>
+
+  <view wx:if="{{chapter && chapter.content}}" class="card">
+    <view class="score-row">
+      <view class="section-title">正文</view>
+      <button class="btn btn-ghost btn-small" bindtap="copyContent">复制正文</button>
+    </view>
+    <view class="chapter-text">{{chapter.content}}</view>
+    <view class="ai-note">内容由 AI 生成，仅供创作参考，请自行判断和修改。</view>
+  </view>
+
+  <view wx:if="{{chapter}}" class="card">
+    <button
+      wx:if="{{chapter.status === 'pending'}}"
+      class="btn btn-primary btn-block"
+      bindtap="rewrite"
+    >重写本章</button>
+    <view wx:if="{{chapter.status === 'pending' && reviewItems.length}}" class="hint">
+      还有 {{reviewItems.length}} 项没有登记，建议先登记再重写。
+    </view>
+    <button
+      wx:if="{{chapter.status === 'final'}}"
+      class="btn btn-primary btn-block"
+      bindtap="nextChapter"
+    >继续写第 {{nextSeq}} 章</button>
+    <button class="btn btn-ghost btn-block" bindtap="backProject">返回作品</button>
+  </view>
+</view>

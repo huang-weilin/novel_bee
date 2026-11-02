@@ -27,6 +27,7 @@ CREATE TABLE IF NOT EXISTS chapters (
     summary TEXT,
     score INTEGER,
     rewrite_count INTEGER NOT NULL DEFAULT 0,
+    review_json TEXT,
     created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
     UNIQUE(project_id, seq)
 );

@@ -35,6 +35,27 @@ def test_estimate_tokens_for_empty_cjk_and_ascii() -> None:
     assert estimate_tokens("中文abcd") == 3
 
 
+def test_build_includes_confirmed_trial_direction() -> None:
+    store = MemoryStore()
+    project_id = seed_project(store)
+    assembler = ContextAssembler(store)
+
+    without_trial = assembler.build(project_id, 6, outline="夜探地牢")
+    with_trial = assembler.build(
+        project_id,
+        6,
+        outline="夜探地牢",
+        trial_text="雨声压低了脚步，张三没有点灯。",
+    )
+
+    assert "trial" not in without_trial.sections
+    assert "trial" in with_trial.sections
+    assert "雨声压低了脚步" in with_trial.sections["trial"]
+    assert "不要照抄" in with_trial.sections["trial"]
+    order = list(with_trial.sections)
+    assert order.index("outline") < order.index("trial") < order.index("scene")
+
+
 def test_build_uses_fixed_section_order_and_recent_window() -> None:
     store = MemoryStore()
     project_id = seed_project(store)

@@ -51,7 +51,19 @@ class MemoryStore:
     def migrate(self) -> None:
         self._conn.executescript(SQLITE_SCHEMA)
         self._migrate_foreshadowing_columns()
+        self._migrate_chapter_columns()
         self._conn.commit()
+
+    def _migrate_chapter_columns(self) -> None:
+        """Add pending-review JSON to databases created before T4-1c."""
+        columns = {
+            row["name"]
+            for row in self._conn.execute("PRAGMA table_info(chapters)")
+        }
+        if "review_json" not in columns:
+            self._conn.execute(
+                "ALTER TABLE chapters ADD COLUMN review_json TEXT"
+            )
 
     def _migrate_foreshadowing_columns(self) -> None:
         """Add M3.5 columns to databases created before the columns existed.
@@ -119,6 +131,7 @@ class MemoryStore:
         summary: str | None = None,
         score: int | None = None,
         rewrite_count: int = 0,
+        review_json: str | None = None,
         chapter_id: str | None = None,
     ) -> Chapter:
         cid = chapter_id or str(uuid.uuid4())
@@ -127,15 +140,16 @@ class MemoryStore:
                 """
                 INSERT INTO chapters (
                     id, project_id, seq, status, title, content, summary,
-                    score, rewrite_count
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    score, rewrite_count, review_json
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 ON CONFLICT(project_id, seq) DO UPDATE SET
                     status = excluded.status,
                     title = excluded.title,
                     content = excluded.content,
                     summary = excluded.summary,
                     score = excluded.score,
-                    rewrite_count = excluded.rewrite_count
+                    rewrite_count = excluded.rewrite_count,
+                    review_json = excluded.review_json
                 """,
                 (
                     cid,
@@ -147,9 +161,27 @@ class MemoryStore:
                     summary,
                     score,
                     rewrite_count,
+                    review_json,
                 ),
             )
         return self.get_chapter(project_id, seq)  # type: ignore[return-value]
+
+    def set_chapter_review(
+        self,
+        project_id: str,
+        seq: int,
+        items: list[dict] | None,
+    ) -> None:
+        """Persist the human-review items for a pending chapter."""
+        review_json = (
+            json.dumps(items, ensure_ascii=False) if items else None
+        )
+        with self._conn:
+            self._conn.execute(
+                "UPDATE chapters SET review_json = ? "
+                "WHERE project_id = ? AND seq = ?",
+                (review_json, project_id, seq),
+            )
 
     def get_chapter(self, project_id: str, seq: int) -> Chapter | None:
         row = self._conn.execute(

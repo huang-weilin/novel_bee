@@ -171,6 +171,7 @@ class ContextAssembler:
         scene_plan: ScenePlan | None = None,
         target_words: int = 2000,
         pov: str = "第三人称",
+        trial_text: str = "",
     ) -> AssembledContext:
         project = self.store.get_project(project_id)
         if project is None:
@@ -211,9 +212,14 @@ class ContextAssembler:
             "l2": self._l2(recent),
             "l3": self._l3(older, self.budget.l3_limit),
             "outline": self._outline(outline),
-            "scene": self._scene(scene_plan, profile.scene_plan_required),
-            "contract": self._contract(target_words, pov, profile),
         }
+        trial = self._trial(trial_text)
+        if trial:
+            sections["trial"] = trial
+        sections["scene"] = self._scene(
+            scene_plan, profile.scene_plan_required
+        )
+        sections["contract"] = self._contract(target_words, pov, profile)
         trimmed: list[str] = []
         text = self._render(sections)
         tokens = estimate_tokens(text)
@@ -739,6 +745,15 @@ class ContextAssembler:
     def _outline(outline: str) -> str:
         return f"""【本章大纲】
 {outline.strip() or '（未提供）'}"""
+
+    @staticmethod
+    def _trial(trial_text: str) -> str:
+        text = trial_text.strip()
+        if not text:
+            return ""
+        return f"""【试写方向（用户已确认，仅作参考）】
+{text}
+以上片段只用于确定叙述视角、语气和人物关系；不要照抄原句，按本章大纲完整展开。"""
 
     @staticmethod
     def _scene(

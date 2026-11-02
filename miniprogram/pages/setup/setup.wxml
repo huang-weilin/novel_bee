@@ -1,0 +1,55 @@
+<view class="page">
+  <view class="hero">
+    <view class="hero-title">新建作品</view>
+    <view class="hero-sub">题材只改变写法和自检项，不改变质量门与记忆。</view>
+  </view>
+
+  <view class="card">
+    <view class="field">
+      <view class="field-label">书名<text class="field-required">*</text></view>
+      <input
+        class="input"
+        value="{{title}}"
+        bindinput="onTitleInput"
+        maxlength="120"
+        placeholder="例如：修仙界315"
+      />
+    </view>
+
+    <view class="field">
+      <view class="field-label">题材</view>
+      <picker
+        mode="selector"
+        range="{{genreLabels}}"
+        value="{{genreIndex}}"
+        bindchange="onGenreChange"
+      >
+        <view class="picker">
+          <text>{{genreLabels[genreIndex] || '通用'}}</text>
+          <text>›</text>
+        </view>
+      </picker>
+    </view>
+
+    <view class="field">
+      <view class="field-label">计划章数（可选）</view>
+      <input
+        class="input"
+        type="number"
+        value="{{target}}"
+        bindinput="onTargetInput"
+        placeholder="例如：120"
+      />
+    </view>
+
+    <view wx:if="{{error}}" class="error-text">{{error}}</view>
+
+    <button
+      class="btn btn-primary btn-block"
+      bindtap="submit"
+      disabled="{{loading}}"
+    >
+      {{loading ? '创建中…' : '创建作品'}}
+    </button>
+  </view>
+</view>

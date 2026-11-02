@@ -29,3 +29,7 @@ references/
 Thumbs.db
 .idea/
 .vscode/
+
+# Local AI assistant/editor files: never publish
+.claude/
+CLAUDE.md

@@ -3,7 +3,7 @@
 > 规则：同一时间只允许一个 `[>]`。新想法先放 Backlog，不直接开工。
 > 状态：`[ ]` 待办 · `[>]` 进行中 · `[x]` 完成 · `[~]` 冻结
 
-## 当前 Sprint：M3 + M3.5 已完成；M4 T4-0 已接线；T4-0c 文风 v0.5 已确认；T4-0e 10 章回归已完成；T4-0f 账本边界已修；T4-0g 质量规则补强已完成；T4-0h 爽点层已接线，重写第一、二章已获用户认可、第三章已写（用户暂不细读）；T4-0i 题材分层已接线；下一项 T4-1 FastAPI 包装
+## 当前 Sprint：M3 + M3.5 已完成；M4 T4-0 已接线；T4-0c 文风 v0.5 已确认；T4-0e 10 章回归已完成；T4-0f 账本边界已修；T4-0g 质量规则补强已完成；T4-0h 爽点层已接线；T4-0i 题材分层已接线；T4-1 FastAPI + 本地网页版已完成；T4-1b 真实 LLM 3 章产品验收通过；T4-1c 待确认项网页补登闭环已完成；T4-2 小程序三类确认界面已完成；T4-3 SSE 任务进度已完成；**M4.6 本地网页版“下载即用”收尾已完成（243 tests）**；原 T4-4 `msgSecCheck`/真机验收与 M5 公网方案冻结，等待真实小程序 AppID 或用户明确重启云端需求
 
 - [x] T0-1 建立目录结构与参考仓库隔离
 - [x] T0-2 写 `docs/PLAN.md`
@@ -56,9 +56,9 @@
 - [x] T3-10 非技术审核包：`docs/REVIEW.md` + 项目 skill `novel-review`
 - [x] T3-11 独立审核修复：R06 低置信度/`thread_id` 假阴性；补到期/最近推进/abandon 测试；补文档边界
 
-**M3.5 验收**：第 2 章埋、第 35 章收的线，在新增 30 条线后第 21/34/36 章仍进 L1；低重要度但到期/最近推进的线也能进 L1；R06 在目标章不报、逾期报 major、回收后不报，且低置信度/`thread_id` 冲突不误判；世界规则常驻且有条数/字数上限；固定实体数下 40 章 token 仍有界；M3.5 验收时 138 tests。T4-0 接入后 149 tests；T4-0c 场景卡/Q09/Q10 后 155 tests；T4-0b/T4-0d 后 160 tests；T4-0e 后 161 tests（新增 token 预算守卫）；T4-0h 后 162 tests（爽点卡字段/契约断言）；T4-0i 后 173 tests；T4-0f 后 182 tests；T4-0g 后 189 tests（Q11/Q12、target_words 贯通、校准测试）。
+**M3.5 验收**：第 2 章埋、第 35 章收的线，在新增 30 条线后第 21/34/36 章仍进 L1；低重要度但到期/最近推进的线也能进 L1；R06 在目标章不报、逾期报 major、回收后不报，且低置信度/`thread_id` 冲突不误判；世界规则常驻且有条数/字数上限；固定实体数下 40 章 token 仍有界；M3.5 验收时 138 tests。T4-0 接入后 149 tests；T4-0c 场景卡/Q09/Q10 后 155 tests；T4-0b/T4-0d 后 160 tests；T4-0e 后 161 tests（新增 token 预算守卫）；T4-0h 后 162 tests（爽点卡字段/契约断言）；T4-0i 后 173 tests；T4-0f 后 182 tests；T4-0g 后 189 tests（Q11/Q12、target_words 贯通、校准测试）；T4-1 后 206 tests（env 加载、FastAPI、任务轮询、重写限制、导出）；T4-1b 后 207 tests（thinking-only 输出自动提高上限重试）；T4-1c 后 212 tests（review_json 持久化/清空、补登人物与物品、校验/404）；T4-2 后 223 tests（试写任务/接口、trial_text 注入、小程序静态检查/页面注册/导航目标/JS 语法）；T4-3 后 224 tests（SSE 终态事件、404、网页 JS 语法）。
 
-## M4 小程序
+## M4 产品链路（本地网页 + 小程序）
 
 - [x] T4-0 将质量层/记忆层接入真实生成管线：`ChapterPipeline` 串起上下文组装 → 生成 → 质量/一致性 → 抽取 → 定稿；质量未 accept 不抽取，`needs_review` 先 dry-run 不写半套记忆；`extractor`/`consistency` 共用 `min_confidence`。3 章实跑均 `final`（82/84/85 分），但发现 1 处 `城防图` 数量误记。
 - [x] T4-0b 处理 3 章实跑暴露的记忆误记：`item_usage` 增加 `action`；账本已有物品时“半张/半块/一角/残片/一部分”标记 `partial`，正数增量 + 部分量词也会被识别为 `partial_item` 跳过；`蒙面人/黑衣人/守卫/宾客` 等场景泛称跳过（`generic_role`），有名有姓的未知角色仍进 `needs_review`。3 章重跑后 `城防图` 保持 1，`needs_review` 全 0。
@@ -69,18 +69,34 @@
 - [x] T4-0i 题材分层：新增 `GenreProfile`（`narrative_rules` / `contract_rules` / `scene_plan_required` / `quality_notes` / `extraction_focus`），内置 `default` / `xianxia_comedy` / `gufeng_mystery` / `urban_romance`；pipeline、记忆表、R01–R07、Q01–Q10 不分叉。`ContextAssembler` 按项目 `genre` 注入【题材专项】【题材自检】和契约条款，`ScenePlan.to_prompt(required)` 支持题材必填字段与缺失警告；抽取器 prompt 增加“题材关注”；普通“仙侠”仍走 `default`，旧项目行为不变。新增 `docs/GENRES.md`；173 tests，ruff 干净。
 - [x] T4-0f 记忆账本边界：`item_usage` 负增量会让库存小于 0 时不写账本，记 `negative_stock` 并跳过（例如库存 0 消耗 1、库存 1 交出 2）；新增 `ledger_item_aliases` 表和一跳别名解析（`青布小包` → `金疮药`），未知标准名仍进 `needs_review`；新增 `python -m novel_pipeline.memory.admin`，可列/关闭/改期伏笔与情感债、维护物品别名，不再靠本地脚本直接改库。SQLite schema、PG `001`/`004_item_aliases.sql`、`MemoryStore`、抽取器和 9 个新测试同步；182 tests，ruff 干净。
 - [x] T4-0g 质量规则补强：新增 Q11 中文标点/格式（汉字紧邻的半角 `, . ! ? ; :`、`...`、`--`，以及包住中文的直引号；英文/数字/代码上下文不误报）和 Q12 章节长度容差（目标 70%–130%，minor 告警，`ChapterInput.target_words` 从 `GenerationRequest` 贯通到规则引擎与 CLI）；校准 `full` Verifier 的 Q07–Q10：旧提示两轮结果漂移，收紧“不算”清单、限制 Q08/Q09 各 ≤2 条、Q10 ≤1 条、总量 ≤4 条并把温度降到 0.0 后，10 章校准稿 0 条语义命中，`full` 复跑 10/10 accept、均分 83.1、0 人工转交；坏样本仍召回 Q07×1 + Q08×2，Q09/Q10 正样本仍命中；16 章已接受稿仅 2 条可改可不改的命中。189 tests，ruff 干净。
-- [ ] T4-1 生产级 HTTP/FastAPI 包装（替换 stdlib server）
-- [ ] T4-2 小程序三类确认界面：大纲/试写/质量待确认
-- [ ] T4-3 SSE 流式进度
-- [ ] T4-4 `msgSecCheck` 输入/输出 + “内容由 AI 生成”标识
+- [x] T4-1 生产级 FastAPI + 本地网页版：新增 `src/novel_pipeline/server`（app/schemas/jobs/`__main__` + static）；作品/章节/生成任务/任务轮询/质量结果/待确认重写/导出/记忆摘要接口；单 worker 后台任务，每请求独立 SQLite 连接，避免跨线程共享连接；`.env` 自动加载且不覆盖 shell/CI 变量；`python -m novel_pipeline.server`、`novel-pipeline`、`start.bat`/`start.sh` 三种入口；默认只监听 `127.0.0.1`，无登录并文档警告；新增 `docs/API.md`；206 tests，ruff 干净。
+- [x] T4-1b 本地网页端到端 3 章产品级验收：真实 LLM，经与页面相同的 HTTP 接口跑通“建作品→大纲→质量结果→待确认→重写→导出”，3 章均 `final`（87/82/88），导出 3/3；ch02 因新角色 `马师兄` 待确认、补登后重写，ch03 因新物品 `投诉台账` 待确认、补登后重写。过程中发现修订调用可能只返回 thinking blocks，`LLMClient` 现自动把输出上限翻倍重试一次（16,384→32,768），仍失败才转人工。页面本身只做了静态资源和接口冒烟，未做自动化浏览器点击；本项验收证据是 HTTP 端到端，不是“页面每台电脑都好看”。
+- [x] T4-1c 待确认项补登闭环：`chapters.review_json` 保存待确认原因（SQLite `_migrate_chapter_columns` 自动加列，PG `005_chapter_review.sql`）；单章详情返回 `review_items`；新增 `POST /api/projects/{id}/characters` 与 `/items`，可补登缺失人物/物品；本地网页在待确认章节下展示原因并直接登记，登记后提示重写。定稿/重写时 `review_json` 清空；记忆仍只在定稿时写入。212 tests，ruff 干净。
+- [x] T4-2 小程序三类确认界面：`miniprogram/` 无构建完成首页/新建/作品/大纲/试写/章节六页；新增 `POST /chapters/trial` 与 `JobManager.submit_trial`，试写真实调用模型写短片段，不跑质量门、不存章节、不写记忆；确认后 `trial_text` 作为方向提示注入正式生成，提示词要求不照抄；章节页轮询任务、展示质量失败项、补登人物/物品、重写/下一章/导出；`project.config.json` 用游客 AppID + `urlCheck:false` 供本地 http 调试；新增 `docs/MINIPROGRAM.md`；223 tests，ruff 干净。
+- [x] T4-3 SSE 任务进度：新增 `GET /api/jobs/{job_id}/events`，0.5 秒检查一次任务状态，状态变化才推送，空闲 10 秒发 keep-alive，终态发 `event: end`；网页用 `EventSource`，连接失败自动回退轮询；小程序继续轮询（无 EventSource）。这是任务进度流，不是逐 token 正文流；224 tests，ruff 干净。
+- [ ] T4-4 `msgSecCheck` 输入/输出 + “内容由 AI 生成”标识：AI 标识已加到网页阅读区和小程序章节/试写页；`msgSecCheck` 需要真实小程序 AppID、secret 和登录用户的 openid，当前游客 AppID 无法完成合规检查，尚未接入。
 - [ ] T4-5 小程序端到端 3 章验收（T4-0 已完成本机管线 3 章实跑，不等同于产品级验收）
+
+## M4.6 本地网页版“下载即用”（已完成）
+
+目标：下载 ZIP 或 clone → 双击 `start.bat` / 运行 `./start.sh` → 浏览器打开 `127.0.0.1:8000` → 网页内配置自己的 AI API → 建作品/试写/生成/导出。数据库、配置和 key 全部留在本机；不需要 Node、Docker、PostgreSQL、Redis 或云服务。
+
+- [x] T4-6a 设置后端：`server/settings.py` 读取/校验/保存配置；只管理四个 `NOVEL_LLM_*` 键；保留 `.env` 其他行和注释；原子写入；POSIX 600；系统环境变量优先；换服务商必须重填 key，防止旧 key 误发新服务商
+- [x] T4-6b 设置接口：`GET /api/settings`、`POST /api/settings`、`POST /api/settings/test`；响应/错误均不含 key；设置接口仅接受回环 Host，局域网访问返回 403；`GET /api/health` 复用同一套读取逻辑
+- [x] T4-6c 连接测试：`LLMClient.ping()` 发一次小请求，HTTP 2xx 即成功；失败消息脱敏并截断；测试超时上限 30 秒
+- [x] T4-6d 设置前端：顶栏“AI 设置”、首次引导卡、原生 `<dialog>` 表单；provider 默认值联动；key 密码框不回填；保存后刷新健康状态并清空 key；未配置时阻止生成并打开设置
+- [x] T4-6e 启动与打包：`start.bat`/`start.sh` 实际检查 Python 3.11+、自动建 venv/装依赖/复制 `.env`、参数透传；依赖加上限；`.gitattributes` 固定 LF/CRLF；`.env.example` 增加可直接填写的 key 行；`.env` 解析去 BOM
+- [x] T4-6f 文档：README 改为下载者视角；新增 `docs/LOCAL.md`（启动/配置/数据/备份/升级/排错/安全边界）与 `docs/STATUS.md`（历史状态与回归记录）；更新 API/MINIPROGRAM/PLAN/TASKS
+- [x] T4-6g 测试：新增 `tests/test_settings.py`（写入/保留注释/换服务商/非法值/脱敏/403/权限）与 `tests/test_local_distribution.py`（启动脚本/`.env.example`/gitignore/包数据/JS/bash 语法）；更新服务端静态断言；全量 243 passed / 2 skipped，ruff 干净
+- [x] T4-6h 干净副本验收：无 `.venv`/`.env`/`data/novel.db` 的副本可启动、显示首次配置引导、保存配置、建作品、生成 `rules` 章节、导出、重启后数据仍在
+- [>] T4-6i 提交与发布：用户已确认提交本地 commit，MIT 许可证已加入；GitHub 远程地址待用户提供，之后才能推送、clone 复验、打 tag/Release
 
 ## Backlog（冻结，不排期）
 
 - [~] 25 条反 AI 味规则全量
 - [~] Neo4j / 图谱记忆
 - [~] Milvus / 向量检索
-- [~] 多租户、计费、运营后台
+- [~] **M5 公网多用户方案（冻结）**：登录、多租户隔离、云 PostgreSQL、配额/计费、运营后台、`msgSecCheck` 双端合规、云端部署
 - [~] 自训练模型
 - [~] 第三方开发流程 skill
 
@@ -116,3 +132,11 @@
 | 2026-11-01 | 试读稿 ch02/ch03 | 第二章 `data/rewrite315/ch02.md` 获用户确认；第三章 `ch03.md` 按仙侠喜剧 profile 写完，把冲突从医馆推到认证机构：公开登记页证明送检样品与销售批次不符，用《认证异议办理须知》第七条逼出盖章更正公告；代价是 50 块加急费、公告只“暂停使用”、经办人查无此人；3,011 字/118 段/段长 25.5，零连续重合；用户暂不细读，按通过处理 |
 | 2026-11-02 | T4-0f | 抽取器对负库存改为 `negative_stock` 跳过，不再写负数；新增 `ledger_item_aliases` 与一跳别名解析，抽取名先查标准名再查别名；新增本地管理 CLI，可关闭/改期伏笔和情感债、维护别名；SQLite schema、PG 001/004、模型、store、extractor 和 9 个测试同步；182 tests，ruff 干净 |
 | 2026-11-02 | T4-0g | 新增 Q11 中文标点/格式（汉字紧邻半角标点/直引号，英文上下文不误报）和 Q12 章节长度容差（目标 70%–130%，minor，`target_words` 贯通 `ChapterInput`/pipeline/CLI）；Verifier Q07–Q10 收紧“不算”清单、限制每章命中数、温度降到 0.0；10 章校准稿 0 条语义误报，坏样本仍召回 Q07+Q08×2，16 章已接受稿仅 2 条；189 tests，ruff 干净 |
+| 2026-11-02 | T4-1 | FastAPI + 本地网页版：作品/章节/任务/质量结果/待确认重写/导出/记忆摘要 API；单 worker 后台任务；无构建静态页；`start.bat`/`start.sh`/`novel-pipeline` 入口；`.env` 自动加载；默认只听 127.0.0.1；新增 `docs/API.md`；206 tests，ruff 干净；真实 LLM 的 3 章产品验收列为 T4-1b |
+| 2026-11-02 | T4-1b | 真实 LLM 经本地 HTTP API 跑通 3 章：待确认→补登人物/物品→重写→`final`（87/82/88）→导出 3/3；修复 thinking-only 输出（输出上限翻倍重试一次）；207 tests，ruff 干净 |
+| 2026-11-02 | T4-1c | 待确认原因持久化到 `chapters.review_json`；单章详情返回 `review_items`；新增补登人物/物品接口和网页登记表单；定稿/重写清空待确认项；212 tests，ruff 干净 |
+| 2026-11-02 | T4-2 | 小程序三类确认界面 + 真实试写：`POST /chapters/trial` 短片段不写章节/记忆，确认后 `trial_text` 注入正式生成；`miniprogram/` 六页无构建，章节页可轮询/补登/重写/导出；`docs/MINIPROGRAM.md`；223 tests，ruff 干净 |
+| 2026-11-02 | T4-3 | 网页 SSE 任务进度：`GET /api/jobs/{job_id}/events` 推送状态 JSON、keep-alive、终态 `event: end`；`EventSource` 失败回退轮询；小程序仍轮询；非逐 token 正文流；224 tests，ruff 干净 |
+| 2026-11-02 | M4.6 本地下载即用 | 网页 AI 设置（只写本地 `.env`、不回显 key、回环 Host 限制、连接测试、换服务商必须重填 key）；启动脚本实际检查 Python 3.11+；依赖上限与 `.gitattributes`；README 重排 + LOCAL/STATUS 文档；干净副本启动/配置/生成/导出/重启验收；243 passed / 2 skipped，ruff 干净；尚未提交/发布 |
+| 2026-11-02 | M5 冻结 | 用户要求先保证本地网页版可用、数据库全在本地、每人自购自配 AI API；公网登录/多租户/云数据库/配额/计费移入冻结 Backlog |
+| 2026-11-02 | 许可证与本地提交 | 用户选择 MIT 并授权提交本地 commit；新增 `LICENSE`，README/PLAN/TASKS 同步；GitHub 远程地址待提供，推送和 Release 未执行 |

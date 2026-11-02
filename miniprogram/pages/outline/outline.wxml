@@ -1,0 +1,147 @@
+<view class="page">
+  <view class="hero">
+    <view class="hero-title">{{isRetry ? '重写本章' : '大纲确认'}}</view>
+    <view class="hero-sub">{{project ? project.title : '加载中…'}} · 第 {{seq}} 章</view>
+  </view>
+
+  <view wx:if="{{error}}" class="card">
+    <view class="error-text">{{error}}</view>
+  </view>
+
+  <view wx:if="{{loading}}" class="card">
+    <view class="empty">正在读取作品设定…</view>
+  </view>
+
+  <view wx:if="{{!loading}}" class="card">
+    <view class="tip" wx:if="{{isRetry}}">
+      这是重写。只有待确认章节能重写；定稿章节受记忆保护。
+    </view>
+    <view class="tip" wx:else>
+      先确认大纲，再试写一个短片段。试写只用于看方向，不写记忆、不占章节；确认后才会写全章。
+    </view>
+
+    <view class="field">
+      <view class="field-label">章节标题（可选）</view>
+      <input
+        class="input"
+        value="{{title}}"
+        data-field="title"
+        bindinput="onInput"
+        maxlength="120"
+        placeholder="不填则自动编号"
+      />
+    </view>
+
+    <view class="row">
+      <view class="field flex">
+        <view class="field-label">目标字数</view>
+        <input
+          class="input"
+          type="number"
+          value="{{targetWords}}"
+          data-field="targetWords"
+          bindinput="onInput"
+        />
+      </view>
+      <view class="field flex">
+        <view class="field-label">视角</view>
+        <input
+          class="input"
+          value="{{pov}}"
+          data-field="pov"
+          bindinput="onInput"
+          maxlength="40"
+        />
+      </view>
+    </view>
+
+    <view class="field">
+      <view class="field-label">本章大纲<text class="field-required">*</text></view>
+      <textarea
+        class="textarea"
+        value="{{outline}}"
+        data-field="outline"
+        bindinput="onInput"
+        maxlength="20000"
+        placeholder="这一章谁要做什么、被谁或什么规则压住、失败会失去什么、本章兑现什么、结尾留什么更大的问题。"
+      />
+    </view>
+
+    <view class="field">
+      <view class="field-label">文风约束（可选）</view>
+      <textarea
+        class="textarea"
+        value="{{style}}"
+        data-field="style"
+        bindinput="onInput"
+        maxlength="20000"
+        placeholder="例如：克制、具体物件、少形容词；人物声口区分。"
+      />
+    </view>
+
+    <view class="field">
+      <view class="field-label">主要角色摘要（可选）</view>
+      <textarea
+        class="textarea"
+        value="{{characterBrief}}"
+        data-field="characterBrief"
+        bindinput="onInput"
+        maxlength="10000"
+        placeholder="例如：许青，社区调解员，怕丢工作；老陶，修鞋匠，嘴硬。"
+      />
+    </view>
+
+    <view wx:if="{{sceneFields.length}}" class="field">
+      <view class="field-label">场景卡（推荐填写本题材必填项）</view>
+      <view class="scene-grid">
+        <view
+          wx:for="{{sceneFields}}"
+          wx:key="name"
+          class="field"
+        >
+          <view class="field-label">
+            {{item.label}}<text wx:if="{{item.required}}" class="field-required">*</text>
+          </view>
+          <input
+            class="input"
+            value="{{item.value}}"
+            data-index="{{index}}"
+            bindinput="onSceneInput"
+            placeholder="{{item.required ? '本题材必填' : '可选'}}"
+          />
+        </view>
+      </view>
+    </view>
+
+    <view class="field">
+      <view class="field-label">试写长度</view>
+      <picker
+        mode="selector"
+        range="{{trialWordOptions}}"
+        value="{{trialWordIndex}}"
+        bindchange="onTrialWordChange"
+      >
+        <view class="picker">
+          <text>{{trialWordOptions[trialWordIndex]}} 字左右</text>
+          <text>›</text>
+        </view>
+      </picker>
+    </view>
+
+    <button
+      class="btn btn-primary btn-block"
+      bindtap="startTrial"
+      disabled="{{submitting}}"
+    >
+      {{submitting ? '提交中…' : '先试写，确认方向'}}
+    </button>
+    <button
+      class="btn btn-ghost btn-block"
+      bindtap="startGenerate"
+      disabled="{{submitting}}"
+    >
+      跳过试写，直接写全章
+    </button>
+    <view class="hint">直接写全章会进入质量门；通过后立即写记忆，未通过则保存为待确认。</view>
+  </view>
+</view>

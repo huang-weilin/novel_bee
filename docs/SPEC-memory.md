@@ -40,6 +40,7 @@ chapters (
   summary text,                  -- <=200 字
   score int,
   rewrite_count int default 0,
+  review_json jsonb,             -- 待确认原因；定稿/重写时清空
   created_at timestamptz default now(),
   unique(project_id, seq)
 )

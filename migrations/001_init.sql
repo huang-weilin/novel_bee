@@ -30,6 +30,7 @@ CREATE TABLE IF NOT EXISTS chapters (
     summary text,
     score int,
     rewrite_count int NOT NULL DEFAULT 0,
+    review_json jsonb,
     created_at timestamptz NOT NULL DEFAULT now(),
     UNIQUE (project_id, seq)
 );

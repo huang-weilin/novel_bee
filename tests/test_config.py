@@ -1,3 +1,5 @@
+import os
+
 import pytest
 
 from novel_pipeline.config import ConfigError, LLMConfig
@@ -80,3 +82,23 @@ def test_invalid_temperature() -> None:
     env = {"DEEPSEEK_API_KEY": "k", "NOVEL_LLM_TEMPERATURE": "3"}
     with pytest.raises(ConfigError, match="NOVEL_LLM_TEMPERATURE"):
         LLMConfig.from_env(env)
+
+
+def test_from_env_loads_dotenv_without_overriding_shell(
+    tmp_path, monkeypatch
+) -> None:
+    (tmp_path / ".env").write_text(
+        "NOVEL_LLM_PROVIDER=deepseek\n"
+        "NOVEL_LLM_MODEL=file-model\n"
+        "DEEPSEEK_API_KEY=sk-file\n",
+        encoding="utf-8",
+    )
+    monkeypatch.chdir(tmp_path)
+    env = {"NOVEL_LLM_MODEL": "shell-model"}
+    monkeypatch.setattr(os, "environ", env)
+
+    cfg = LLMConfig.from_env()
+
+    assert cfg.provider == "deepseek"
+    assert cfg.model == "shell-model"
+    assert cfg.resolve_api_key() == "sk-file"

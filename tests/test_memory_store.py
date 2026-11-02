@@ -1,3 +1,4 @@
+import json
 import sqlite3
 from pathlib import Path
 
@@ -63,6 +64,30 @@ def test_project_and_chapter_roundtrip(store: MemoryStore) -> None:
     assert updated.score == 82
     assert updated.rewrite_count == 1
     assert len(store.list_chapters(project.id)) == 1
+
+
+def test_chapter_review_items_roundtrip_and_clear(store: MemoryStore) -> None:
+    project = store.create_project("长夜", "仙侠")
+    store.upsert_chapter(project.id, 1, "pending", content="正文")
+    items = [
+        {
+            "kind": "character",
+            "name": "王五",
+            "reason": "unknown_character",
+            "detail": {"status": "新角色"},
+        }
+    ]
+
+    store.set_chapter_review(project.id, 1, items)
+    saved = store.get_chapter(project.id, 1)
+    assert saved is not None
+    assert saved.review_json is not None
+    assert json.loads(saved.review_json) == items
+
+    store.upsert_chapter(project.id, 1, "final", content="正文")
+    cleared = store.get_chapter(project.id, 1)
+    assert cleared is not None
+    assert cleared.review_json is None
 
 
 def test_chapter_requires_existing_project(store: MemoryStore) -> None:

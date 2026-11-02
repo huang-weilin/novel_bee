@@ -1,0 +1,39 @@
+<view class="page">
+  <view class="hero">
+    <view class="hero-title">试写确认</view>
+    <view class="hero-sub">第 {{seq}} 章 · 先看方向，再决定是否写全章</view>
+  </view>
+
+  <view class="card">
+    <view class="score-row">
+      <view class="section-title">{{message}}</view>
+      <view wx:if="{{chars}}" class="pill pill-muted">{{chars}} 字</view>
+    </view>
+    <view class="progress-track">
+      <view class="progress-bar" style="width: {{progress}}%;"></view>
+    </view>
+    <view wx:if="{{error}}" class="error-text">{{error}}</view>
+    <view wx:if="{{loading}}" class="empty">模型正在写一个短片段，请稍等…</view>
+  </view>
+
+  <view wx:if="{{content}}" class="card">
+    <view class="section-title">试写片段</view>
+    <view class="chapter-text">{{content}}</view>
+    <view class="ai-note">内容由 AI 生成，仅供创作参考，请自行判断和修改。</view>
+    <view class="tip">试写不写记忆、不占章节。确认后会用同一份大纲写全章，并把这段作为方向参考。</view>
+    <button
+      class="btn btn-primary btn-block"
+      bindtap="confirmTrial"
+      disabled="{{submitting}}"
+    >
+      {{submitting ? '提交中…' : '按这个方向写全章'}}
+    </button>
+    <button class="btn btn-ghost btn-block" bindtap="retryTrial">换个方向再试</button>
+    <button class="btn btn-ghost btn-block" bindtap="backToOutline">返回改大纲</button>
+  </view>
+
+  <view wx:if="{{error && !content}}" class="card">
+    <button class="btn btn-ghost btn-block" bindtap="retryTrial">重新试写</button>
+    <button class="btn btn-ghost btn-block" bindtap="backToOutline">返回大纲</button>
+  </view>
+</view>

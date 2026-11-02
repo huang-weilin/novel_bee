@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>长篇小说工坊 · 本地版</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="logo">墨</span>
+      <div>
+        <h1>长篇小说工坊</h1>
+        <p>本地版 · 质量门 · 长线记忆</p>
+      </div>
+    </div>
+    <div class="topbar-actions">
+      <button id="settings-btn" class="ghost" type="button">AI 设置</button>
+      <div id="health" class="health health--checking">正在检查 AI 配置…</div>
+    </div>
+  </header>
+
+  <main class="layout">
+    <aside class="sidebar">
+      <section class="card">
+        <div class="card-head">
+          <h2>作品</h2>
+          <button id="refresh-projects" class="icon-btn" type="button" title="刷新作品列表">↻</button>
+        </div>
+        <ul id="project-list" class="project-list"></ul>
+        <p id="no-projects" class="hint">还没有作品，先在下面新建一本。</p>
+      </section>
+
+      <section class="card">
+        <h2>新建作品</h2>
+        <form id="create-form" class="stack">
+          <label>书名
+            <input id="create-title" maxlength="120" required placeholder="例如：修仙界315">
+          </label>
+          <label>题材
+            <select id="create-genre"></select>
+          </label>
+          <label>计划章数（可选）
+            <input id="create-target" type="number" min="1" max="5000" placeholder="例如：120">
+          </label>
+          <button class="primary" type="submit">创建作品</button>
+        </form>
+      </section>
+
+      <section id="memory-card" class="card" hidden>
+        <h2>长线记忆</h2>
+        <div id="memory-counts" class="memory-counts"></div>
+        <div id="memory-detail" class="memory-detail"></div>
+      </section>
+    </aside>
+
+    <section class="workspace">
+      <section id="setup-card" class="card setup-card" hidden>
+        <div>
+          <p class="eyebrow">第一步</p>
+          <h2>先配置你自己的 AI API</h2>
+          <p class="hint">填服务商、模型和 API Key。Key 只保存在本机 .env，不会上传到本工具；每个用户用自己的账号和额度。</p>
+        </div>
+        <button id="setup-open" class="primary" type="button">打开 AI 设置</button>
+      </section>
+
+      <section id="welcome" class="card welcome">
+        <p class="eyebrow">从一本作品开始</p>
+        <h2>先立人物，再写麻烦，最后才是世界观。</h2>
+        <p class="hint">在左边新建作品，填一章大纲，系统会先写作，再过质量门和长线一致性检查。通过后自动定稿；没通过会保存为“待确认”，正文不会丢。</p>
+        <ol class="welcome-steps">
+          <li><strong>新建作品</strong><span>选题材。题材只改变写法和自检项，不改变记忆与质量门。</span></li>
+          <li><strong>写第一章</strong><span>大纲写清：谁要做什么、谁压着他、失败失去什么、本章兑现什么。</span></li>
+          <li><strong>看质量结果</strong><span>定稿、待确认、失败都会显示原因；待确认可以改大纲后重写。</span></li>
+        </ol>
+      </section>
+
+      <section id="project-view" hidden>
+        <div class="card project-head">
+          <div>
+            <p id="project-genre" class="eyebrow"></p>
+            <h2 id="project-title"></h2>
+            <p id="project-meta" class="hint"></p>
+          </div>
+          <div class="head-actions">
+            <button id="export-btn" class="ghost" type="button">导出 TXT</button>
+          </div>
+        </div>
+
+        <div class="grid-two">
+          <section class="card chapter-card">
+            <div class="card-head">
+              <h3>章节</h3>
+              <span id="chapter-count" class="hint"></span>
+            </div>
+            <ol id="chapter-list" class="chapter-list"></ol>
+            <p id="chapter-empty" class="hint">还没有章节。填写下方大纲，生成第一章。</p>
+          </section>
+
+          <section class="card reader-card">
+            <div id="reader-empty" class="reader-empty">
+              选择左侧章节查看正文，或直接生成下一章。
+            </div>
+            <article id="reader" hidden>
+              <div class="reader-head">
+                <div>
+                  <p id="reader-seq" class="eyebrow"></p>
+                  <h3 id="reader-title"></h3>
+                </div>
+                <span id="reader-status" class="status-pill"></span>
+              </div>
+              <div class="reader-actions">
+                <button id="retry-btn" class="ghost" type="button" hidden>重写本章</button>
+              </div>
+              <section id="review-box" class="review-box" hidden>
+                <div class="review-head">
+                  <strong>待确认事项</strong>
+                  <span class="hint">先登记缺失的人物或物品，再点“重写本章”，系统会重新检查并写入记忆。</span>
+                </div>
+                <ul id="review-list" class="review-list"></ul>
+              </section>
+              <pre id="reader-content" class="prose"></pre>
+              <p class="ai-note">内容由 AI 生成，仅供创作参考，请自行判断和修改。</p>
+            </article>
+          </section>
+        </div>
+
+        <section class="card compose-card">
+          <div class="card-head">
+            <h3>写下一章</h3>
+            <span id="compose-hint" class="hint">生成会先过质量门；未通过会保存为待确认，不写记忆。</span>
+          </div>
+          <form id="generate-form" class="stack">
+            <input id="chapter-seq" type="hidden">
+            <div class="form-row">
+              <label>章节标题（可选）
+                <input id="gen-title" maxlength="120" placeholder="不填则自动编号">
+              </label>
+              <label>目标字数
+                <input id="gen-target" type="number" min="200" max="20000" value="2000">
+              </label>
+              <label>视角
+                <input id="gen-pov" maxlength="40" value="第三人称">
+              </label>
+              <label>质量模式
+                <select id="gen-mode">
+                  <option value="">跟随服务器</option>
+                  <option value="full">full（最严）</option>
+                  <option value="rules+score">rules+score</option>
+                  <option value="rules+llm">rules+llm</option>
+                  <option value="rules">rules（最快）</option>
+                </select>
+              </label>
+            </div>
+            <label>本章大纲（必填）
+              <textarea id="gen-outline" rows="5" required placeholder="这一章谁要做什么、被谁或什么规则压住、失败会失去什么、本章兑现什么、结尾留什么更大的问题。"></textarea>
+            </label>
+            <label>文风约束（可选）
+              <textarea id="gen-style" rows="2" placeholder="例如：克制、具体物件、少形容词；人物声口区分。"></textarea>
+            </label>
+            <label>主要角色摘要（可选）
+              <textarea id="gen-brief" rows="2" placeholder="例如：许青，社区调解员，怕丢工作；老陶，修鞋匠，嘴硬。"></textarea>
+            </label>
+            <details class="scene-box">
+              <summary>场景卡（推荐填写，至少填本题材必填项）</summary>
+              <div id="scene-fields" class="scene-fields"></div>
+            </details>
+            <div class="form-actions">
+              <button id="generate-btn" class="primary" type="submit">开始生成</button>
+              <button id="cancel-retry" class="ghost" type="button" hidden>取消重写</button>
+              <span id="job-status" class="hint"></span>
+            </div>
+          </form>
+
+          <div id="job-result" class="job-result" hidden>
+            <div class="job-head">
+              <strong id="job-result-title"></strong>
+              <span id="job-result-score" class="score"></span>
+            </div>
+            <div class="progress"><div id="job-progress-bar"></div></div>
+            <p id="job-result-message" class="hint"></p>
+            <ul id="job-failures" class="failure-list"></ul>
+            <p id="job-error" class="error" hidden></p>
+          </div>
+        </section>
+      </section>
+    </section>
+  </main>
+
+  <dialog id="settings-dialog" class="settings-dialog">
+    <form id="settings-form" class="stack">
+      <div class="dialog-head">
+        <div>
+          <p class="eyebrow">本机配置</p>
+          <h2>AI 设置</h2>
+        </div>
+        <button id="settings-close" class="icon-btn" type="button" aria-label="关闭">×</button>
+      </div>
+
+      <p class="hint">Key 只写入本机 <code>.env</code>，不会上传到本工具。测试连接会产生一次很小的 API 调用。</p>
+
+      <label>服务商
+        <select id="settings-provider"></select>
+      </label>
+      <label>模型
+        <input id="settings-model" maxlength="200" placeholder="例如 deepseek-chat">
+      </label>
+      <label>Base URL
+        <input id="settings-base-url" maxlength="500" placeholder="留空使用服务商默认地址">
+      </label>
+      <p id="settings-base-hint" class="hint"></p>
+      <label>API Key
+        <input id="settings-api-key" type="password" autocomplete="off" spellcheck="false" placeholder="粘贴你的 API Key">
+      </label>
+      <p id="settings-key-hint" class="hint"></p>
+
+      <div class="settings-paths">
+        <span>数据文件：<code id="settings-data-path"></code></span>
+        <span>配置文件：<code id="settings-env-path"></code></span>
+      </div>
+
+      <p id="settings-message" class="settings-message" hidden></p>
+
+      <div class="dialog-actions">
+        <button id="settings-test" class="ghost" type="button">测试连接</button>
+        <button class="primary" type="submit">保存</button>
+        <button id="settings-cancel" class="ghost" type="button">取消</button>
+      </div>
+    </form>
+  </dialog>
+
+  <div id="toast" class="toast" hidden></div>
+  <script src="/static/app.js"></script>
+</body>
+</html>

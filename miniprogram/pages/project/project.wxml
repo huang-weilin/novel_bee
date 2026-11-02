@@ -1,0 +1,72 @@
+<view class="page">
+  <view wx:if="{{error}}" class="card">
+    <view class="error-text">{{error}}</view>
+    <button class="btn btn-ghost btn-block" bindtap="load">重试</button>
+  </view>
+
+  <view wx:if="{{project}}" class="card">
+    <view class="row between">
+      <view class="flex">
+        <view class="hero-title">{{project.title}}</view>
+        <view class="hint">{{project.genre_label || project.genre}}</view>
+      </view>
+      <view class="pill pill-muted">{{project.final_count}} / {{project.chapter_count}} 定稿</view>
+    </view>
+
+    <view class="stats">
+      <view class="stat">已写 <text class="stat-strong">{{project.chapter_count}}</text> 章</view>
+      <view class="stat">待确认 <text class="stat-strong">{{project.pending_count}}</text></view>
+      <view wx:if="{{project.target_chapters}}" class="stat">计划 {{project.target_chapters}} 章</view>
+    </view>
+
+    <view class="row wrap action-row">
+      <button class="btn btn-primary" bindtap="goOutline">写第 {{nextSeq}} 章</button>
+      <button class="btn btn-ghost" bindtap="copyExport">导出全文</button>
+    </view>
+    <view wx:if="{{project.pending_count}}" class="tip">
+      有 {{project.pending_count}} 章待确认。建议先在下面点开处理；直接往下写，后续章节会缺少这一章的记忆。
+    </view>
+    <view class="hint">导出会复制全文；如果太长，会改为复制下载链接，请在电脑浏览器打开。</view>
+  </view>
+
+  <view wx:if="{{project}}" class="card">
+    <view class="section-title">章节</view>
+    <view wx:if="{{!chapters.length}}" class="empty">
+      还没有章节。点“写第 1 章”，先过大纲确认和试写确认。
+    </view>
+    <view
+      wx:for="{{chapters}}"
+      wx:key="seq"
+      class="list-item"
+      bindtap="openChapter"
+      data-seq="{{item.seq}}"
+      hover-class="item-hover"
+    >
+      <view class="row between">
+        <view class="item-title">第{{item.seq}}章 · {{item.title || '未命名'}}</view>
+        <view class="pill {{item.statusClass}}">{{item.statusLabel}}</view>
+      </view>
+      <view class="item-meta">
+        {{item.chars}} 字 · {{item.scoreText}} · 重写 {{item.rewrite_count}} 次
+      </view>
+    </view>
+  </view>
+
+  <view wx:if="{{memory}}" class="card">
+    <view class="section-title">长线记忆</view>
+    <view class="stats">
+      <view class="stat">人物 <text class="stat-strong">{{memory.counts.characters}}</text></view>
+      <view class="stat">物品 <text class="stat-strong">{{memory.counts.ledger_items}}</text></view>
+      <view class="stat">未回收伏笔 <text class="stat-strong">{{memory.counts.open_foreshadowing}}</text></view>
+      <view class="stat">未还情感债 <text class="stat-strong">{{memory.counts.open_emotional_threads}}</text></view>
+      <view class="stat">世界规则 <text class="stat-strong">{{memory.counts.active_world_rules}}</text></view>
+    </view>
+    <view wx:if="{{memory.open_foreshadowing.length}}" class="divider"></view>
+    <view wx:for="{{memory.open_foreshadowing}}" wx:key="id" class="item-meta">
+      第 {{item.planted_chapter}} 章埋：{{item.title}}
+    </view>
+    <view wx:for="{{memory.open_emotional_threads}}" wx:key="id" class="item-meta">
+      {{item.debt_from}} → {{item.debt_to}}：{{item.title}}
+    </view>
+  </view>
+</view>

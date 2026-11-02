@@ -259,6 +259,11 @@ def test_unknown_extraction_entity_stays_pending() -> None:
     assert saved is not None
     assert saved.status == "pending"
     assert saved.summary is None
+    assert saved.review_json is not None
+    review_items = json.loads(saved.review_json)
+    assert review_items[0]["kind"] == "character"
+    assert review_items[0]["name"] == "王五"
+    assert review_items[0]["reason"] == "unknown_character"
     assert store.get_character(project_id, "王五") is None
 
 

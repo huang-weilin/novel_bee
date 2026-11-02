@@ -1,0 +1,15 @@
+{
+  "description": "长篇小说工坊微信小程序（本地后端）",
+  "miniprogramRoot": "./",
+  "compileType": "miniprogram",
+  "appid": "touristappid",
+  "projectname": "novel-pipeline-miniprogram",
+  "setting": {
+    "urlCheck": false,
+    "es6": true,
+    "postcss": true,
+    "minified": true,
+    "enhance": true
+  },
+  "libVersion": "3.6.0"
+}

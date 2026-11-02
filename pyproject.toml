@@ -8,18 +8,27 @@ version = "0.1.0"
 description = "Long-form AI novel generation pipeline with quality gates and structured memory"
 requires-python = ">=3.11"
 dependencies = [
-    "pydantic>=2.6",
+    "pydantic>=2.6,<3",
+    "fastapi>=0.115,<1",
+    "uvicorn>=0.30,<1",
 ]
 
 [project.optional-dependencies]
 dev = [
     "pytest>=8.0",
     "pytest-asyncio>=0.23",
+    "httpx>=0.27",
     "ruff>=0.6",
 ]
 
+[project.scripts]
+novel-pipeline = "novel_pipeline.server.__main__:main"
+
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.setuptools.package-data]
+novel_pipeline = ["server/static/*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

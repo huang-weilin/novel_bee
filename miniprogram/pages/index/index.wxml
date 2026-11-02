@@ -1,0 +1,58 @@
+<view class="page">
+  <view class="hero">
+    <view class="hero-title">长篇小说工坊</view>
+    <view class="hero-sub">大纲确认 · 试写确认 · 质量待确认</view>
+  </view>
+
+  <view class="card">
+    <view class="row between">
+      <view class="section-title">后端服务</view>
+      <view class="pill {{healthOk ? 'pill-final' : 'pill-pending'}}">{{healthOk ? '已连接' : '未就绪'}}</view>
+    </view>
+    <view class="row server-box">
+      <input
+        class="input flex"
+        value="{{baseUrlInput}}"
+        bindinput="onBaseInput"
+        placeholder="http://127.0.0.1:8000"
+      />
+      <button class="btn btn-ghost btn-small" bindtap="saveBase">保存</button>
+    </view>
+    <view class="hint">{{healthText}}</view>
+    <view class="hint">开发者工具里用 127.0.0.1 即可。真机调试要让后端加 --host 0.0.0.0 启动，再填电脑的局域网 IP；这只适合同一局域网临时测试，不要暴露到公网。</view>
+  </view>
+
+  <view wx:if="{{error}}" class="card">
+    <view class="error-text">{{error}}</view>
+    <button class="btn btn-ghost btn-block" bindtap="load">重试</button>
+  </view>
+
+  <view class="card">
+    <view class="row between">
+      <view class="section-title">作品</view>
+      <button class="btn btn-primary btn-small" bindtap="goCreate">新建作品</button>
+    </view>
+
+    <view wx:if="{{!projects.length && !loading}}" class="empty">
+      还没有作品。先新建一本，再写第一章。
+    </view>
+
+    <view
+      wx:for="{{projects}}"
+      wx:key="id"
+      class="list-item"
+      bindtap="openProject"
+      data-id="{{item.id}}"
+      hover-class="item-hover"
+    >
+      <view class="row between">
+        <view class="item-title">{{item.title}}</view>
+        <view class="pill pill-muted">{{item.genre_label || item.genre}}</view>
+      </view>
+      <view class="item-meta">
+        已写 {{item.chapter_count}} 章 · 定稿 {{item.final_count}}
+        <text wx:if="{{item.pending_count}}"> · 待确认 {{item.pending_count}}</text>
+      </view>
+    </view>
+  </view>
+</view>

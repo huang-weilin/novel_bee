@@ -48,6 +48,7 @@ class Chapter:
     score: int | None
     rewrite_count: int
     created_at: str
+    review_json: str | None = None
 
     @classmethod
     def from_row(cls, row: sqlite3.Row) -> Chapter:
@@ -62,6 +63,7 @@ class Chapter:
             score=row["score"],
             rewrite_count=row["rewrite_count"],
             created_at=row["created_at"],
+            review_json=row["review_json"],
         )
 
 

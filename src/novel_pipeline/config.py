@@ -10,6 +10,8 @@ import os
 from collections.abc import Mapping
 from dataclasses import dataclass, field
 
+from .envfile import load_env_file
+
 
 class ConfigError(ValueError):
     """Raised when the LLM configuration is invalid or incomplete."""
@@ -120,7 +122,13 @@ class LLMConfig:
         *,
         validate_key: bool = True,
     ) -> LLMConfig:
-        source = os.environ if env is None else env
+        if env is None:
+            # Local users copy .env.example to .env. A real shell/CI variable
+            # wins because load_env_file never overrides by default.
+            load_env_file(".env")
+            source = os.environ
+        else:
+            source = env
         raw_provider = (
             _text(source, "NOVEL_LLM_PROVIDER", "deepseek") or "deepseek"
         ).lower()

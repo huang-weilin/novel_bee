@@ -1,0 +1,19 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/setup/setup",
+    "pages/project/project",
+    "pages/outline/outline",
+    "pages/trial/trial",
+    "pages/chapter/chapter"
+  ],
+  "window": {
+    "navigationBarTitleText": "长篇小说工坊",
+    "navigationBarBackgroundColor": "#211d18",
+    "navigationBarTextStyle": "white",
+    "backgroundColor": "#f3eee4",
+    "backgroundTextStyle": "dark"
+  },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json"
+}
